@@ -1,3 +1,7 @@
+# Ref. https://proxyway.com/guides/how-to-scrape-instagram 
+# video: https://www.youtube.com/watch?v=SNyQu_FXkqs 
+# proxy provider: https://proxy2.webshare.io/proxy/list
+
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -6,7 +10,7 @@ import json
 from selenium_stealth import stealth
 import csv
 
-#proxy = "http://blockchain:blockchain1396@proxy_server:7492"
+proxy = "http://username:password@proxy_server:port"
 proxy = "server:port"
 output = {}
 
