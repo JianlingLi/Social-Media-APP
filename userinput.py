@@ -42,9 +42,16 @@ def parse_data(username, user_data):
     post_created_date = None
     post_created_time = None
     views_count = 0
+    type_of_post = []
+    latest_post_url = None
+    likes_disabled = False
+    views_disabled = False
 
     if len(user_data['edge_owner_to_timeline_media']['edges']) > 0:
-        for node in user_data['edge_owner_to_timeline_media']['edges']:
+        for i, node in enumerate(user_data['edge_owner_to_timeline_media']['edges']):
+            if i == 0:  # This is the latest post
+                latest_post_url = "https://instagram.com/p/" + node['node']['shortcode']
+
             if len(node['node']['edge_media_to_caption']['edges']) > 0:
                 if node['node']['edge_media_to_caption']['edges'][0]['node']['text']:
                     captions.append(
@@ -62,6 +69,18 @@ def parse_data(username, user_data):
             # Extract views count (if available)
             views_count = node['node'].get('video_view_count', 0)
 
+            # Check type of post
+            if node['node']['is_video']:
+                type_of_post = 'video'
+            elif node['node'].get('display_url'):
+                type_of_post = 'image'
+            else:
+                type_of_post = 'text'
+
+            # Check if likes/views are disabled
+            likes_disabled = 'edge_media_preview_like' not in node['node']
+            views_disabled = 'edge_media_to_comment' not in node['node']
+
     user_output = {
         'UserName': username,
         'Name': user_data['full_name'],
@@ -75,7 +94,11 @@ def parse_data(username, user_data):
         'Views': views_count,
         'Comments': comments_count,
         'Number of Post': user_data['edge_owner_to_timeline_media']['count'],
-        'Posts': captions,
+        'Posts': ', '.join(captions),
+        'Type of Post': type_of_post,
+        'Likes Disabled': likes_disabled,
+        'Views Disabled': views_disabled,
+        'Latest Post URL': latest_post_url,
         'Link': f"https://instagram.com/{username}",
     }
 
@@ -97,16 +120,14 @@ def scrape(username):
         user_data = data_json['graphql']['user']
         num_posts = user_data['edge_owner_to_timeline_media']['count']
         parsed_data = parse_data(username, user_data)
-        #parse_data(username, user_data)
         chrome.quit()
-        #return parse_data(username, user_data)
         return parsed_data
 
 def main():
     username = input('Please enter the username: ')
     # Open a CSV file in write mode
     with open(username + '.csv', 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['UserName', 'Name', 'Category', 'Followers', 'Post Created Date', 'Post Created Time', 'Following', 'Likes', 'Total Interactions', 'Views', 'Comments', 'Number of Post', 'Posts', 'Link']
+        fieldnames = ['UserName', 'Name', 'Category', 'Followers', 'Post Created Date', 'Post Created Time', 'Following', 'Likes', 'Total Interactions', 'Views', 'Comments', 'Number of Post', 'Posts', 'Type of Post', 'Likes Disabled', 'Views Disabled', 'Latest Post URL', 'Link']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         # Write the header row
@@ -117,7 +138,6 @@ def main():
         if user_data:
             writer.writerow(user_data)
             output[username] = user_data
-            #scrape(username)
 
 if __name__ == '__main__':
     main()
