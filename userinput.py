@@ -94,7 +94,7 @@ def parse_data(username, user_data):
         'Views': views_count,
         'Comments': comments_count,
         'Number of Post': user_data['edge_owner_to_timeline_media']['count'],
-        'Posts': ', '.join(captions),
+        'Posts': captions,
         'Type of Post': type_of_post,
         'Likes Disabled': likes_disabled,
         'Views Disabled': views_disabled,
